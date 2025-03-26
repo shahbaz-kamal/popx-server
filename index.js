@@ -2,13 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require("mongodb");
 require("dotenv").config();
 // middleware
 app.use(cors());
 app.use(express.json());
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jxshq.mongodb.net/?appName=Cluster0`;
 
@@ -18,7 +16,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -27,18 +25,30 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
+
+    // creatingcollection
+    const userCollection = client.db("popx").collection("users");
+
+    app.post("/user", async (req, res) => {
+      const newUser = req.body;
+      console.log(newUser)
+      const query = {email:newUser?.email};
+      const isExist = await userCollection.findOne(query);
+      if (isExist) {
+        res.send({ message: "user Exist" });
+      }
+      const result = await userCollection.insertOne(newUser);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
 run().catch(console.dir);
-
-
-
-
-
 
 app.get("/", (req, res) => {
   res.send("popx server is running");
@@ -47,4 +57,3 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`popx-server is running on port ${port}`);
 });
-
