@@ -31,16 +31,22 @@ async function run() {
 
     // creatingcollection
     const userCollection = client.db("popx").collection("users");
-
+    // storing userdata to mongodb
     app.post("/user", async (req, res) => {
       const newUser = req.body;
-      console.log(newUser)
-      const query = {email:newUser?.email};
+      console.log(newUser);
+      const query = { email: newUser?.email };
       const isExist = await userCollection.findOne(query);
       if (isExist) {
         res.send({ message: "user Exist" });
       }
       const result = await userCollection.insertOne(newUser);
+      res.send(result);
+    });
+    // getting user data
+    app.get("/user/:email", async (req, res) => {
+      const query={email:req?.params?.email}
+      const result = await userCollection.find(query).toArray();
       res.send(result);
     });
   } finally {
